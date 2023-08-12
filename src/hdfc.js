@@ -3,25 +3,18 @@ import moment from "moment";
 import fs from "fs";
 
 const PASSWD = "ANIL0202";
-const OUTPUT_FILE = "hdfc.csv";
+const suffix = moment().format("DD_MM_YY_HH:SS");
+const OUTPUT_FILE = `data/hdfc_${suffix}.csv`;
 
 const STARTER_TEXT = ["Amount (in Rs.)", "ANIL KUMAR MAURYA"];
 const END_TEXT = ["* Note:"];
 
-// // Convert the comma-separated string to CSV format
-// const lines = csvContent.split("\n");
-// const csvData = lines
-//   .map((line) =>
-//     line
-//       .split(",")
-//       .map((cell) => `"${cell}"`)
-//       .join(",")
-//   )
-//   .join("\n");
-
-function saveFileToDisk(data) {
+function saveCSV(data) {
+  const csvContent = data
+    .map((row) => row.map((cell) => `"${cell}"`).join(","))
+    .join("\n");
   // Write the CSV data to the file
-  fs.writeFile(OUTPUT_FILE, data, (err) => {
+  fs.writeFile(OUTPUT_FILE, csvContent, (err) => {
     if (err) {
       console.error("Error writing CSV file:", err);
     } else {
@@ -56,20 +49,21 @@ function shouldProcessEnd(text) {
   return false;
 }
 
-const records = [];
+const records = []; // [date, description, points, credit, debit]
 
-let pointerEnd = false;
 let columnIndex = 0;
 function parseTable(text) {
   if (text === "Cr") {
+    const row = records[records.length - 1];
+    row[3] = row[4];
+    row[4] = 0;
     return;
   }
 
-  let cellData = text;
+  // Date column
   if (columnIndex === 0) {
     const alphabetRegex = /^[a-zA-Z]/g;
     if (alphabetRegex.test(text)) {
-      debugger;
       return;
     }
 
@@ -79,32 +73,44 @@ function parseTable(text) {
       return;
     }
 
-    cellData = date.format("DD/MM/YYYY");
     records.push([date.format("DD/MM/YYYY")]);
+    columnIndex++;
+    return;
   }
 
+  // Description column
+  if (columnIndex === 1) {
+    records[records.length - 1].push(text);
+    columnIndex++;
+    return;
+  }
+
+  // Could be points/amount columns
   if (columnIndex === 2) {
-    // debugger
     const [int, decimals] = text.split(".");
     if (decimals) {
-      columnIndex = 3;
+      const row = records[records.length - 1];
+      row.push(0); // points
+      row.push(0); // Credit amount
+      const withoutSeparator = text.replace(/,/g, "");
+      const debitAmount = parseFloat(withoutSeparator).toFixed(2);
+      row.push(debitAmount);
+      columnIndex = 0;
     } else {
-      return;
+      const row = records[records.length - 1];
+      const spaceRemoved = text.replace(/\s/g, "");
+      const points = parseInt(spaceRemoved);
+      row.push(points);
+      columnIndex++;
     }
+    return;
   }
 
   if (columnIndex === 3) {
-    cellData = parseFloat(text).toFixed(2);
-    pointerEnd = true;
-  }
-
-  columnIndex++;
-  csvData += cellData;
-  csvData += ",";
-
-  if (pointerEnd) {
-    csvData += "\n";
-    pointerEnd = false;
+    const row = records[records.length - 1];
+    row.push(0); // Credit amount
+    const debitAmount = parseFloat(text).toFixed(2);
+    row.push(debitAmount);
     columnIndex = 0;
   }
 }
@@ -114,8 +120,8 @@ function processItem(item) {
   if (!item) {
     // end of file
 
-    saveFileToDisk(csvData);
-    console.warn(csvData);
+    saveCSV(records);
+    // console.warn(records);
     return;
   }
 
@@ -129,10 +135,12 @@ function processItem(item) {
   }
 }
 
-new PdfReader({ password: PASSWD }).parseFileItems(
-  "data/hdfc.pdf",
-  function (err, item) {
-    if (err) console.error(err);
-    else processItem(item);
-  }
-);
+export default function processHDFC() {
+  new PdfReader({ password: PASSWD }).parseFileItems(
+    "data/hdfc.pdf",
+    function (err, item) {
+      if (err) console.error(err);
+      else processItem(item);
+    }
+  );
+}
