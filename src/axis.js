@@ -3,7 +3,8 @@ import moment from "moment";
 import fs from "fs";
 
 const NAME = "axis";
-const PASSWD = "ANIL0202";
+const { PASSWD } = process.env;
+
 const suffix = moment().format("DD_MM_YY_HH:SS");
 const OUTPUT_FILE = `data/${NAME}_${suffix}.csv`;
 

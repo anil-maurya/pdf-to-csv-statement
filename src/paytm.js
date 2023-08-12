@@ -2,9 +2,11 @@ import { PdfReader } from "pdfreader";
 import moment from "moment";
 import fs from "fs";
 
-const PASSWD = "";
+const NAME = "paytm";
+const { PASSWD } = process.env;
+
 const suffix = moment().format("DD_MM_YY_HH:SS");
-const OUTPUT_FILE = `data/paytm_${suffix}.csv`;
+const OUTPUT_FILE = `data/${NAME}_${suffix}.csv`;
 
 const STARTER_TEXT = ["AMOUNT", "AVAILABLE BALANCE"];
 const END_TEXT = ["* Note:"];
@@ -148,14 +150,11 @@ function processItem(item) {
   }
 }
 
-export default function processPaytm() {
-  new PdfReader({ password: PASSWD }).parseFileItems(
-    "data/paytm.pdf",
-    function (err, item) {
-      if (err) console.error(err);
-      else processItem(item);
-    }
-  );
-}
+export default function main() {
+  const pdf = `data/${NAME}.pdf`;
 
-// processPaytm();
+  new PdfReader({ password: PASSWD }).parseFileItems(pdf, function (err, item) {
+    if (err) console.error(err);
+    else processItem(item);
+  });
+}

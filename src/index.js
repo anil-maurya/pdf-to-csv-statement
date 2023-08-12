@@ -1,4 +1,5 @@
 import inquirer from "inquirer";
+import "dotenv/config";
 import hdfc from "./hdfc.js";
 import paytm from "./paytm.js";
 import axis from "./axis.js";
