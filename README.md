@@ -2,12 +2,11 @@
 
 Simple application to import bank statements in CSV format.
 
+TODO:
+
 - [x] HDFC Rupay Credit Card
 - [x] Paytm Bank Account
 - [x] Axis Flipkart Credit Card
-
-TODO:
-
 - [ ] Update readme
 - [ ] Re-factor
 - [ ] add support for xls
