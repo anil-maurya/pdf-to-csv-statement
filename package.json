@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.3.1",
     "inquirer": "^9.2.10",
     "moment": "^2.29.4",
     "pdfreader": "^3.0.0"
