@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import hdfc from "./hdfc.js";
+import paytm from "./paytm.js";
 
 inquirer
   .prompt([
@@ -14,6 +15,10 @@ inquirer
     const choice = answers.bank.toLowerCase();
     if (choice === "hdfc") {
       hdfc();
+      return;
+    }
+    if (choice === "paytm") {
+      paytm();
       return;
     }
     return;
